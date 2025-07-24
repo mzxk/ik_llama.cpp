@@ -1,0 +1,42 @@
+name: Build ik_llama.cpp with CUDA 12.8.1
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git
+
+      - name: Install CUDA 12.8.1
+        uses: Jimver/cuda-toolkit@v0.2.26
+        with:
+          cuda: '12.8.1'
+
+      - name: Show CUDA version
+        run: nvcc --version
+
+      - name: Build with CUDA
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DLLAMA_CUBLAS=ON
+          make -j$(nproc)
+
+      - name: Upload CUDA build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ik_llama_cuda12.8.1
+          path: build/
